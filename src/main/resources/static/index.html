@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Telegram WebApp</title>
+    <link rel="stylesheet" href="/css/tailwind.css">
+    <script async src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+<div id="content" class="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full text-center">
+    Загрузка...
+</div>
+
+<script>
+
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+
+    const content = document.getElementById('content');
+    const initData = tg.initData;
+    const initDataUnsafe = tg.initDataUnsafe;
+
+
+    content.innerHTML = `
+      <h2 class="font-bold mb-2">Raw initData:</h2>
+      <pre class="text-left bg-gray-100 p-2 rounded mb-4">${initData}</pre>
+      <h2 class="font-bold mb-2">Parsed initDataUnsafe:</h2>
+      <pre class="text-left bg-gray-100 p-2 rounded mb-4">${JSON.stringify(initDataUnsafe, null, 2)}</pre>
+    `;
+
+    if (!initData) {
+        content.innerHTML += `
+        <h1 class="text-xl font-bold mb-4 text-red-600">Нет initData</h1>
+        <p>Нажмите «Открыть WebApp» в вашем чате с ботом в мобильном Telegram.</p>
+      `;
+    } else {
+
+        fetch(`${window.location.origin}/api/auth`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ initData })
+        })
+            .then(res => res.json().then(json => ({ status: res.status, json })))
+            .then(({ status, json }) => {
+                if (status !== 200) throw new Error(json.error || 'Auth failed');
+                content.innerHTML = `
+          <h1 class="text-2xl font-bold mb-4">Добро пожаловать, ${json.firstName}!</h1>
+          <ul class="text-left">
+            <li><strong>ID:</strong> ${json.id}</li>
+            <li><strong>Username:</strong> ${json.username}</li>
+          </ul>
+        `;
+            })
+            .catch(err => {
+                content.innerHTML += `
+          <h1 class="text-2xl font-bold text-red-600 mb-4">Ошибка аутентификации</h1>
+          <p>${err.message}</p>
+        `;
+            });
+    }
+</script>
+</body>
+</html>
