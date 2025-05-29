@@ -2,7 +2,7 @@
 import crypto from 'crypto';
 
 
-const botToken = '7136595610:AAHAlC_spefMkCdgkD5k9ekDGmfTCJo2UO4';
+const botToken = ;
 
 
 const initData = {
